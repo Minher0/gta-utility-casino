@@ -196,3 +196,7 @@ Use 'kill 660' to stop it.
  GET / 200 in 32ms (compile: 2ms, render: 29ms)
  GET / 200 in 49ms (compile: 3ms, render: 46ms)
 ✓ Compiled in 98ms
+ GET / 200 in 147ms (compile: 55ms, render: 92ms)
+ GET / 200 in 45ms (compile: 3ms, render: 42ms)
+ GET / 200 in 36ms (compile: 2ms, render: 34ms)
+ GET / 200 in 34ms (compile: 4ms, render: 30ms)

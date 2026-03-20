@@ -2,22 +2,43 @@
 
 import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+import { Skeleton } from '@/components/ui/skeleton';
 import PodiumVehicle from '@/components/casino/PodiumVehicle';
 import WeeklyBonus from '@/components/casino/WeeklyBonus';
 import CasinoHeader from '@/components/casino/CasinoHeader';
 import CasinoFooter from '@/components/casino/CasinoFooter';
-import vehicleConfig from '@/data/vehicle-config.json';
 import type { VehicleConfig } from '@/types/vehicle';
 
 export default function Home() {
   const [showBonus, setShowBonus] = useState(false);
   const [mounted, setMounted] = useState(false);
-  const config = vehicleConfig as VehicleConfig;
+  const [config, setConfig] = useState<VehicleConfig | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const timer = requestAnimationFrame(() => setMounted(true));
     return () => cancelAnimationFrame(timer);
+  }, []);
+
+  useEffect(() => {
+    async function fetchVehicleData() {
+      try {
+        const response = await fetch('/api/vehicle');
+        if (!response.ok) {
+          throw new Error('Failed to fetch vehicle data');
+        }
+        const data = await response.json();
+        setConfig(data);
+      } catch (err) {
+        console.error('Error fetching vehicle data:', err);
+        setError('Impossible de charger les données du véhicule');
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchVehicleData();
   }, []);
 
   return (
@@ -44,7 +65,7 @@ export default function Home() {
             <div className="relative inline-block mb-6">
               <div className="w-24 h-24 md:w-32 md:h-32 mx-auto rounded-2xl bg-gradient-to-br from-amber-400 via-yellow-400 to-amber-500 flex items-center justify-center shadow-[0_0_60px_rgba(251,191,36,0.4)]">
                 <svg className="w-14 h-14 md:w-20 md:h-20 text-black" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                  <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 14l-5-5 1.41-1.41L12 14.17l4.59-4.58L18 11l-6 6z"/>
                 </svg>
               </div>
               <div className="absolute -inset-2 bg-gradient-to-br from-amber-400 to-yellow-400 rounded-3xl blur-xl opacity-30 animate-pulse" />
@@ -71,92 +92,145 @@ export default function Home() {
                 <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
               </div>
               <span className="text-zinc-500 text-sm">
-                Mise à jour hebdomadaire • {config.casinoInfo.podiumRefreshDay}
+                Mise à jour automatique • {config?.casinoInfo?.podiumRefreshDay || 'Jeudi'}
               </span>
             </div>
-          </section>
 
-          {/* Podium Vehicle Section */}
-          <section id="podium" className="mb-16">
-            <div className={`transition-all duration-700 delay-200 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
-              <PodiumVehicle 
-                name={config.currentPodiumVehicle.name}
-                manufacturer={config.currentPodiumVehicle.manufacturer}
-                type={config.currentPodiumVehicle.type}
-                image={config.currentPodiumVehicle.image}
-                originalPrice={config.currentPodiumVehicle.originalPrice}
-                currency={config.currentPodiumVehicle.currency}
-                dealer={config.currentPodiumVehicle.dealer}
-                stats={config.currentPodiumVehicle.stats}
-                description={config.currentPodiumVehicle.description}
-              />
-            </div>
-          </section>
-
-          {/* Weekly Bonuses Section */}
-          <section id="bonus" className="mb-16">
-            <div className="text-center mb-8">
-              <h2 className="text-2xl md:text-3xl font-bold text-white mb-2">
-                Bonus de la Semaine
-              </h2>
-              <p className="text-zinc-500">
-                Profitez des récompenses exclusives du {config.currentPodiumVehicle.weekStart} au {config.currentPodiumVehicle.weekEnd}
+            {/* Last updated */}
+            {config?.lastUpdated && (
+              <p className="text-zinc-600 text-xs mb-4">
+                Dernière mise à jour: {new Date(config.lastUpdated).toLocaleString('fr-FR')}
               </p>
-            </div>
-            
-            <WeeklyBonus bonuses={config.weeklyBonuses} />
-
-            {/* CTA Button */}
-            <div className="text-center mt-8">
-              <Button 
-                onClick={() => setShowBonus(!showBonus)}
-                className="bg-gradient-to-r from-amber-500 to-yellow-400 text-black font-bold px-8 py-6 text-lg hover:from-amber-400 hover:to-yellow-300 shadow-[0_0_30px_rgba(251,191,36,0.3)] hover:shadow-[0_0_50px_rgba(251,191,36,0.5)] transition-all duration-300 rounded-xl"
-              >
-                <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7" />
-                </svg>
-                Voir tous les bonus de la semaine
-              </Button>
-            </div>
+            )}
           </section>
 
-          {/* Casino Info Section */}
-          <section id="info" className="mb-16">
-            <div className="bg-gradient-to-br from-zinc-900/80 to-black border border-amber-500/20 rounded-2xl p-6 md:p-8">
-              <div className="grid md:grid-cols-3 gap-6 text-center">
-                <div className="space-y-2">
-                  <div className="w-12 h-12 mx-auto rounded-lg bg-gradient-to-br from-amber-500/20 to-yellow-500/10 flex items-center justify-center">
-                    <svg className="w-6 h-6 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                    </svg>
+          {/* Loading State */}
+          {loading && (
+            <section className="mb-16">
+              <div className="bg-gradient-to-br from-zinc-900 via-zinc-900 to-black border-2 border-amber-500/30 rounded-xl p-6 md:p-8">
+                <div className="grid lg:grid-cols-2 gap-8">
+                  <div className="space-y-4">
+                    <Skeleton className="aspect-video rounded-xl bg-zinc-800" />
                   </div>
-                  <h3 className="text-white font-semibold">{config.casinoInfo.name}</h3>
-                  <p className="text-zinc-500 text-sm">{config.casinoInfo.location}</p>
-                </div>
-
-                <div className="space-y-2">
-                  <div className="w-12 h-12 mx-auto rounded-lg bg-gradient-to-br from-amber-500/20 to-yellow-500/10 flex items-center justify-center">
-                    <svg className="w-6 h-6 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
+                  <div className="space-y-4">
+                    <Skeleton className="h-8 w-3/4 bg-zinc-800" />
+                    <Skeleton className="h-4 w-full bg-zinc-800" />
+                    <Skeleton className="h-4 w-2/3 bg-zinc-800" />
+                    <Skeleton className="h-24 w-full bg-zinc-800 rounded-lg" />
+                    <div className="space-y-3">
+                      <Skeleton className="h-6 w-full bg-zinc-800" />
+                      <Skeleton className="h-6 w-full bg-zinc-800" />
+                      <Skeleton className="h-6 w-full bg-zinc-800" />
+                      <Skeleton className="h-6 w-full bg-zinc-800" />
+                    </div>
                   </div>
-                  <h3 className="text-white font-semibold">Coût du tour</h3>
-                  <p className="text-zinc-500 text-sm">{config.casinoInfo.spinCost}</p>
-                </div>
-
-                <div className="space-y-2">
-                  <div className="w-12 h-12 mx-auto rounded-lg bg-gradient-to-br from-amber-500/20 to-yellow-500/10 flex items-center justify-center">
-                    <svg className="w-6 h-6 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                    </svg>
-                  </div>
-                  <h3 className="text-white font-semibold">Rotation du podium</h3>
-                  <p className="text-zinc-500 text-sm">Chaque {config.casinoInfo.podiumRefreshDay}</p>
                 </div>
               </div>
-            </div>
-          </section>
+            </section>
+          )}
+
+          {/* Error State */}
+          {error && !loading && (
+            <section className="mb-16">
+              <div className="bg-gradient-to-br from-red-900/20 to-black border border-red-500/30 rounded-xl p-8 text-center">
+                <p className="text-red-400 mb-4">{error}</p>
+                <Button 
+                  onClick={() => window.location.reload()}
+                  className="bg-amber-500 text-black hover:bg-amber-400"
+                >
+                  Réessayer
+                </Button>
+              </div>
+            </section>
+          )}
+
+          {/* Podium Vehicle Section */}
+          {config && !loading && (
+            <section id="podium" className="mb-16">
+              <div className={`transition-all duration-700 delay-200 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
+                <PodiumVehicle 
+                  name={config.currentPodiumVehicle.name}
+                  manufacturer={config.currentPodiumVehicle.manufacturer}
+                  type={config.currentPodiumVehicle.type}
+                  image={config.currentPodiumVehicle.image}
+                  originalPrice={config.currentPodiumVehicle.originalPrice}
+                  currency={config.currentPodiumVehicle.currency}
+                  dealer={config.currentPodiumVehicle.dealer}
+                  stats={config.currentPodiumVehicle.stats}
+                  description={config.currentPodiumVehicle.description}
+                />
+              </div>
+            </section>
+          )}
+
+          {/* Weekly Bonuses Section */}
+          {config && !loading && (
+            <section id="bonus" className="mb-16">
+              <div className="text-center mb-8">
+                <h2 className="text-2xl md:text-3xl font-bold text-white mb-2">
+                  Bonus de la Semaine
+                </h2>
+                <p className="text-zinc-500">
+                  Profitez des récompenses exclusives du {config.currentPodiumVehicle.weekStart} au {config.currentPodiumVehicle.weekEnd}
+                </p>
+              </div>
+              
+              <WeeklyBonus bonuses={config.weeklyBonuses} />
+
+              {/* CTA Button */}
+              <div className="text-center mt-8">
+                <Button 
+                  onClick={() => setShowBonus(!showBonus)}
+                  className="bg-gradient-to-r from-amber-500 to-yellow-400 text-black font-bold px-8 py-6 text-lg hover:from-amber-400 hover:to-yellow-300 shadow-[0_0_30px_rgba(251,191,36,0.3)] hover:shadow-[0_0_50px_rgba(251,191,36,0.5)] transition-all duration-300 rounded-xl"
+                >
+                  <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7" />
+                  </svg>
+                  Voir tous les bonus de la semaine
+                </Button>
+              </div>
+            </section>
+          )}
+
+          {/* Casino Info Section */}
+          {config && !loading && (
+            <section id="info" className="mb-16">
+              <div className="bg-gradient-to-br from-zinc-900/80 to-black border border-amber-500/20 rounded-2xl p-6 md:p-8">
+                <div className="grid md:grid-cols-3 gap-6 text-center">
+                  <div className="space-y-2">
+                    <div className="w-12 h-12 mx-auto rounded-lg bg-gradient-to-br from-amber-500/20 to-yellow-500/10 flex items-center justify-center">
+                      <svg className="w-6 h-6 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                      </svg>
+                    </div>
+                    <h3 className="text-white font-semibold">{config.casinoInfo.name}</h3>
+                    <p className="text-zinc-500 text-sm">{config.casinoInfo.location}</p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <div className="w-12 h-12 mx-auto rounded-lg bg-gradient-to-br from-amber-500/20 to-yellow-500/10 flex items-center justify-center">
+                      <svg className="w-6 h-6 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                    </div>
+                    <h3 className="text-white font-semibold">Coût du tour</h3>
+                    <p className="text-zinc-500 text-sm">{config.casinoInfo.spinCost}</p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <div className="w-12 h-12 mx-auto rounded-lg bg-gradient-to-br from-amber-500/20 to-yellow-500/10 flex items-center justify-center">
+                      <svg className="w-6 h-6 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                      </svg>
+                    </div>
+                    <h3 className="text-white font-semibold">Rotation du podium</h3>
+                    <p className="text-zinc-500 text-sm">Chaque {config.casinoInfo.podiumRefreshDay}</p>
+                  </div>
+                </div>
+              </div>
+            </section>
+          )}
 
         </div>
       </div>
