@@ -1,0 +1,67 @@
+{
+  "currentPodiumVehicle": {
+    "id": "ignus",
+    "name": "Pegassi Ignus",
+    "manufacturer": "Pegassi",
+    "type": "Super Car",
+    "image": "https://cdn.gtabase.com/images/35e8c7a8e2a13e7d5ad3f5b91c3d4c18.png",
+    "originalPrice": 2650000,
+    "currency": "GTA$",
+    "dealer": "Legendary Motorsport",
+    "weekStart": "2026-03-20",
+    "weekEnd": "2026-03-27",
+    "stats": {
+      "topSpeed": {
+        "label": "Vitesse de pointe",
+        "value": 92,
+        "maxValue": 100,
+        "unit": "mph"
+      },
+      "acceleration": {
+        "label": "Accélération",
+        "value": 88,
+        "maxValue": 100,
+        "unit": "s"
+      },
+      "braking": {
+        "label": "Freinage",
+        "value": 75,
+        "maxValue": 100,
+        "unit": ""
+      },
+      "traction": {
+        "label": "Traction",
+        "value": 85,
+        "maxValue": 100,
+        "unit": ""
+      }
+    },
+    "description": "L'Ignus de Pegassi est une supercar italienne inspirée de la Lamborghini Huracán Sterrato, combinant performance brute et design agressif pour dominer les routes de Los Santos."
+  },
+  "weeklyBonuses": [
+    {
+      "id": 1,
+      "title": "Double GTA$ & RP",
+      "description": "Courses de rue à travers la ville",
+      "icon": "race"
+    },
+    {
+      "id": 2,
+      "title": "30% de réduction",
+      "description": "Sur tous les véhicules Pegassi",
+      "icon": "discount"
+    },
+    {
+      "id": 3,
+      "title": "Triple récompenses",
+      "description": "Missions du Diamond Casino",
+      "icon": "casino"
+    }
+  ],
+  "casinoInfo": {
+    "name": "Diamond Casino & Resort",
+    "location": "East Vinewood, Los Santos",
+    "spinCost": "GTA$ 50,000",
+    "podiumRefreshDay": "Jeudi"
+  }
+}
