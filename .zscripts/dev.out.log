@@ -256,3 +256,8 @@ Use 'kill 660' to stop it.
 
 ✓ Starting...
 ✓ Ready in 997ms
+ GET / 200 in 1479ms (compile: 1309ms, render: 170ms)
+ GET / 200 in 57ms (compile: 5ms, render: 52ms)
+ GET /api/vehicle 200 in 1052ms (compile: 73ms, render: 978ms)
+ GET / 200 in 44ms (compile: 4ms, render: 39ms)
+ GET /api/vehicle 200 in 10ms (compile: 2ms, render: 7ms)

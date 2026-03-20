@@ -1,48 +1,8 @@
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
+import { useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
-import type { VehicleStats } from '@/types/vehicle';
-
-interface StatBarProps {
-  label: string;
-  value: number;
-  maxValue: number;
-  delay: number;
-}
-
-function StatBar({ label, value, maxValue, delay }: StatBarProps) {
-  const [animatedValue, setAnimatedValue] = useState(0);
-  const percentage = (value / maxValue) * 100;
-  const hasAnimated = useRef(false);
-
-  useEffect(() => {
-    if (hasAnimated.current) return;
-    hasAnimated.current = true;
-    
-    const timer = setTimeout(() => {
-      setAnimatedValue(percentage);
-    }, delay);
-    return () => clearTimeout(timer);
-  }, [percentage, delay]);
-
-  return (
-    <div className="space-y-2">
-      <div className="flex justify-between items-center text-sm">
-        <span className="text-zinc-400 font-medium">{label}</span>
-        <span className="text-amber-400 font-bold">{value}<span className="text-zinc-500 text-xs">/{maxValue}</span></span>
-      </div>
-      <div className="relative h-3 bg-zinc-900/80 rounded-full overflow-hidden border border-amber-500/20">
-        <div 
-          className="absolute inset-y-0 left-0 bg-gradient-to-r from-amber-600 via-amber-400 to-yellow-400 rounded-full transition-all duration-1000 ease-out shadow-[0_0_10px_rgba(251,191,36,0.5)]"
-          style={{ width: `${animatedValue}%` }}
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-transparent to-white/10 rounded-full" />
-      </div>
-    </div>
-  );
-}
 
 interface PodiumVehicleProps {
   name: string;
@@ -52,7 +12,6 @@ interface PodiumVehicleProps {
   originalPrice: number;
   currency: string;
   dealer: string;
-  stats: VehicleStats;
   description: string;
 }
 
@@ -64,7 +23,6 @@ export default function PodiumVehicle({
   originalPrice,
   currency,
   dealer,
-  stats,
   description
 }: PodiumVehicleProps) {
   const [imageLoaded, setImageLoaded] = useState(false);
@@ -163,43 +121,6 @@ export default function PodiumVehicle({
                   <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                 </svg>
                 Gagnable gratuitement au podium du casino!
-              </div>
-            </div>
-
-            {/* Stats */}
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-white flex items-center gap-2">
-                <svg className="w-5 h-5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                </svg>
-                Statistiques du véhicule
-              </h3>
-              
-              <div className="space-y-4">
-                <StatBar 
-                  label={stats.topSpeed.label} 
-                  value={stats.topSpeed.value} 
-                  maxValue={stats.topSpeed.maxValue}
-                  delay={200}
-                />
-                <StatBar 
-                  label={stats.acceleration.label} 
-                  value={stats.acceleration.value} 
-                  maxValue={stats.acceleration.maxValue}
-                  delay={400}
-                />
-                <StatBar 
-                  label={stats.braking.label} 
-                  value={stats.braking.value} 
-                  maxValue={stats.braking.maxValue}
-                  delay={600}
-                />
-                <StatBar 
-                  label={stats.traction.label} 
-                  value={stats.traction.value} 
-                  maxValue={stats.traction.maxValue}
-                  delay={800}
-                />
               </div>
             </div>
           </div>
