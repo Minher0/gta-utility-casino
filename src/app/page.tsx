@@ -3,11 +3,118 @@
 import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
 import PodiumVehicle from '@/components/casino/PodiumVehicle';
 import WeeklyBonus from '@/components/casino/WeeklyBonus';
 import CasinoHeader from '@/components/casino/CasinoHeader';
 import CasinoFooter from '@/components/casino/CasinoFooter';
-import type { VehicleConfig } from '@/types/vehicle';
+import type { VehicleConfig, WeeklyBonus as WeeklyBonusType } from '@/types/vehicle';
+
+// Extended bonus type with additional fields
+interface ExtendedBonus extends WeeklyBonusType {
+  reward?: string;
+  isNew?: boolean;
+  isHot?: boolean;
+}
+
+// Get all weekly bonuses with detailed information
+function getAllWeeklyBonuses(): ExtendedBonus[] {
+  return [
+    { 
+      id: 1, 
+      title: 'Double GTA$ & RP', 
+      description: 'Courses de rue à travers Los Santos', 
+      icon: 'race',
+      reward: '2x GTA$ et RP sur toutes les courses de rue',
+      isHot: true
+    },
+    { 
+      id: 2, 
+      title: 'Triple Récompenses Casino', 
+      description: 'Missions et défis du Diamond Casino', 
+      icon: 'casino',
+      reward: '3x GTA$ sur les missions casino',
+      isNew: true
+    },
+    { 
+      id: 3, 
+      title: '30% de réduction', 
+      description: 'Sur tous les véhicules Legendary Motorsport', 
+      icon: 'discount',
+      reward: 'Économisez jusqu\'à 500 000 GTA$'
+    },
+    { 
+      id: 4, 
+      title: 'Double Récompenses Adversary Modes', 
+      description: 'Modes de jeu compétitifs', 
+      icon: 'race',
+      reward: '2x GTA$ et RP'
+    },
+    { 
+      id: 5, 
+      title: 'Prime de connexion', 
+      description: 'Connectez-vous chaque jour pour recevoir des récompenses', 
+      icon: 'gift',
+      reward: 'Jusqu\'à 200 000 GTA$ par jour'
+    },
+    { 
+      id: 6, 
+      title: 'Tour Gratuit Lucky Wheel', 
+      description: 'Un tour gratuit chaque jour à la roue de la fortune', 
+      icon: 'casino',
+      reward: 'Véhicule, GTA$, ou prix mystère'
+    },
+    { 
+      id: 7, 
+      title: 'Discount Property', 
+      description: 'Réductions sur les propriétés et bunkers', 
+      icon: 'discount',
+      reward: 'Jusqu\'à 40% de réduction'
+    },
+    { 
+      id: 8, 
+      title: 'Double Récompenses Business Battles', 
+      description: 'Missions de cargo et ventes spéciales', 
+      icon: 'race',
+      reward: '2x GTA$ et RP'
+    },
+  ];
+}
+
+// Get icon component by name
+function getBonusIcon(iconName: string): JSX.Element {
+  const icons: Record<string, JSX.Element> = {
+    race: (
+      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+      </svg>
+    ),
+    discount: (
+      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+    ),
+    casino: (
+      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+      </svg>
+    ),
+    gift: (
+      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7" />
+      </svg>
+    ),
+  };
+  
+  return icons[iconName] || icons.casino;
+}
 
 export default function Home() {
   const [showBonus, setShowBonus] = useState(false);
@@ -183,17 +290,99 @@ export default function Home() {
               
               <WeeklyBonus bonuses={config.weeklyBonuses} />
 
-              {/* CTA Button */}
+              {/* CTA Button with Modal */}
               <div className="text-center mt-8">
-                <Button 
-                  onClick={() => setShowBonus(!showBonus)}
-                  className="bg-gradient-to-r from-amber-500 to-yellow-400 text-black font-bold px-8 py-6 text-lg hover:from-amber-400 hover:to-yellow-300 shadow-[0_0_30px_rgba(251,191,36,0.3)] hover:shadow-[0_0_50px_rgba(251,191,36,0.5)] transition-all duration-300 rounded-xl"
-                >
-                  <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7" />
-                  </svg>
-                  Voir tous les bonus de la semaine
-                </Button>
+                <Dialog open={showBonus} onOpenChange={setShowBonus}>
+                  <DialogTrigger asChild>
+                    <Button 
+                      onClick={() => setShowBonus(true)}
+                      className="bg-gradient-to-r from-amber-500 to-yellow-400 text-black font-bold px-8 py-6 text-lg hover:from-amber-400 hover:to-yellow-300 shadow-[0_0_30px_rgba(251,191,36,0.3)] hover:shadow-[0_0_50px_rgba(251,191,36,0.5)] transition-all duration-300 rounded-xl"
+                    >
+                      <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7" />
+                      </svg>
+                      Voir tous les bonus de la semaine
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-4xl max-h-[85vh] overflow-y-auto bg-gradient-to-br from-zinc-900 via-black to-zinc-900 border-amber-500/30 text-white">
+                    <DialogHeader className="sr-only">
+                      <DialogTitle className="text-2xl font-bold text-amber-400">Bonus de la Semaine</DialogTitle>
+                      <DialogDescription className="text-zinc-400">
+                        Tous les bonus et récompenses disponibles cette semaine
+                      </DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-6">
+                      {/* Header */}
+                      <div className="text-center pb-4 border-b border-amber-500/20">
+                        <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-amber-500 to-yellow-400 mb-4 shadow-[0_0_30px_rgba(251,191,36,0.3)]">
+                          <svg className="w-8 h-8 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7" />
+                          </svg>
+                        </div>
+                        <h2 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-400 bg-clip-text text-transparent">
+                          Bonus de la Semaine
+                        </h2>
+                        <p className="text-zinc-400 mt-2">
+                          Du {config.currentPodiumVehicle.weekStart} au {config.currentPodiumVehicle.weekEnd}
+                        </p>
+                      </div>
+
+                      {/* All Bonuses Grid */}
+                      <div className="grid gap-4">
+                        {getAllWeeklyBonuses().map((bonus, index) => (
+                          <div 
+                            key={bonus.id}
+                            className="group relative overflow-hidden bg-gradient-to-r from-zinc-900/80 to-black border border-amber-500/20 hover:border-amber-500/50 rounded-xl p-5 transition-all duration-300"
+                          >
+                            <div className="absolute inset-0 bg-gradient-to-r from-amber-500/0 via-amber-500/5 to-amber-500/0 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                            <div className="relative flex items-start gap-4">
+                              <div className="p-3 rounded-lg bg-gradient-to-br from-amber-500/20 to-yellow-500/10 text-amber-400 group-hover:scale-110 transition-transform duration-300">
+                                {getBonusIcon(bonus.icon)}
+                              </div>
+                              <div className="flex-1">
+                                <div className="flex items-center gap-2 mb-1">
+                                  <h3 className="font-semibold text-white group-hover:text-amber-400 transition-colors">
+                                    {bonus.title}
+                                  </h3>
+                                  {bonus.isNew && (
+                                    <span className="px-2 py-0.5 text-xs font-bold bg-green-500/20 text-green-400 rounded-full animate-pulse">
+                                      NOUVEAU
+                                    </span>
+                                  )}
+                                  {bonus.isHot && (
+                                    <span className="px-2 py-0.5 text-xs font-bold bg-red-500/20 text-red-400 rounded-full">
+                                      🔥 POPULAIRE
+                                    </span>
+                                  )}
+                                </div>
+                                <p className="text-zinc-400 text-sm mb-2">{bonus.description}</p>
+                                {bonus.reward && (
+                                  <div className="flex items-center gap-2 text-sm">
+                                    <span className="text-amber-400 font-medium">Récompense:</span>
+                                    <span className="text-white">{bonus.reward}</span>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+
+                      {/* Footer info */}
+                      <div className="text-center pt-4 border-t border-amber-500/20">
+                        <p className="text-zinc-500 text-sm">
+                          Les bonus sont mis à jour chaque jeudi à 10h00 (heure du jeu)
+                        </p>
+                        <Button 
+                          onClick={() => setShowBonus(false)}
+                          className="mt-4 bg-amber-500/20 hover:bg-amber-500/30 text-amber-400 border border-amber-500/30"
+                        >
+                          Fermer
+                        </Button>
+                      </div>
+                    </div>
+                  </DialogContent>
+                </Dialog>
               </div>
             </section>
           )}
