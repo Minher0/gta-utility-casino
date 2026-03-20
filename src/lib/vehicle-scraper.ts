@@ -6,25 +6,26 @@ let cachedData: any = null;
 let lastFetchTime = 0;
 let lastFetchDate = ''; // Track the date of last fetch
 
-// Vehicle images from GTA Wiki Fandom (reliable source)
+// Vehicle images - Local hosted images (generated with AI)
 const VEHICLE_IMAGES: Record<string, string> = {
-  'schlagen gt': 'https://static.wikia.nocookie.net/gtawiki/images/1/1c/SchlagenGT-GTAO-front.png',
-  'ignus': 'https://static.wikia.nocookie.net/gtawiki/images/e/e7/Ignus-GTAO-front.png',
-  'jb 700w': 'https://static.wikia.nocookie.net/gtawiki/images/5/5a/JB700W-GTAO-front.png',
-  'jb700w': 'https://static.wikia.nocookie.net/gtawiki/images/5/5a/JB700W-GTAO-front.png',
-  'neon': 'https://static.wikia.nocookie.net/gtawiki/images/a/a7/Neon-GTAO-front.png',
-  'sc1': 'https://static.wikia.nocookie.net/gtawiki/images/7/7d/SC1-GTAO-front.png',
-  'comet s2': 'https://static.wikia.nocookie.net/gtawiki/images/1/1b/CometS2-GTAO-front.png',
-  'sultan rs': 'https://static.wikia.nocookie.net/gtawiki/images/3/34/SultanRS-GTAO-front.png',
-  'revolter': 'https://static.wikia.nocookie.net/gtawiki/images/4/42/Revolter-GTAO-front.png',
-  'pariah': 'https://static.wikia.nocookie.net/gtawiki/images/e/e8/Pariah-GTAO-front.png',
-  'nero': 'https://static.wikia.nocookie.net/gtawiki/images/c/cf/Nero-GTAO-front.png',
-  'xa-21': 'https://static.wikia.nocookie.net/gtawiki/images/a/a6/XA21-GTAO-front.png',
-  'fmj': 'https://static.wikia.nocookie.net/gtawiki/images/c/c1/FMJ-GTAO-front.png',
-  'reaper': 'https://static.wikia.nocookie.net/gtawiki/images/f/f9/Reaper-GTAO-front.png',
-  'gt500': 'https://static.wikia.nocookie.net/gtawiki/images/1/13/GT500-GTAO-front.png',
-  's80': 'https://static.wikia.nocookie.net/gtawiki/images/b/bc/S80-GTAO-front.png',
-  'dewbauchee': 'https://static.wikia.nocookie.net/gtawiki/images/5/5a/JB700W-GTAO-front.png',
+  'schlagen gt': '/vehicles/schlagen-gt.png',
+  'ignus': '/vehicles/ignus.png',
+  'jb 700w': '/vehicles/jb700w.png',
+  'jb700w': '/vehicles/jb700w.png',
+  'neon': '/vehicles/neon.png',
+  'sc1': '/vehicles/placeholder.png',
+  'comet s2': '/vehicles/placeholder.png',
+  'sultan rs': '/vehicles/placeholder.png',
+  'revolter': '/vehicles/placeholder.png',
+  'pariah': '/vehicles/placeholder.png',
+  'nero': '/vehicles/placeholder.png',
+  'xa-21': '/vehicles/placeholder.png',
+  'fmj': '/vehicles/placeholder.png',
+  'reaper': '/vehicles/placeholder.png',
+  'gt500': '/vehicles/placeholder.png',
+  's80': '/vehicles/placeholder.png',
+  'dewbauchee': '/vehicles/jb700w.png',
+  'default': '/vehicles/placeholder.png',
 };
 
 // Fallback data when scraping fails
@@ -268,8 +269,8 @@ function getVehicleImage(vehicleName: string): string {
     }
   }
   
-  // Default fallback image from GTA Wiki
-  return 'https://static.wikia.nocookie.net/gtawiki/images/1/1c/SchlagenGT-GTAO-front.png';
+  // Default fallback image
+  return VEHICLE_IMAGES['default'];
 }
 
 async function fetchFromWebSearch(zai: any): Promise<any> {
