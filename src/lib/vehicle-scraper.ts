@@ -6,6 +6,27 @@ let cachedData: any = null;
 let lastFetchTime = 0;
 let lastFetchDate = ''; // Track the date of last fetch
 
+// Vehicle images from GTA Wiki Fandom (reliable source)
+const VEHICLE_IMAGES: Record<string, string> = {
+  'schlagen gt': 'https://static.wikia.nocookie.net/gtawiki/images/1/1c/SchlagenGT-GTAO-front.png',
+  'ignus': 'https://static.wikia.nocookie.net/gtawiki/images/e/e7/Ignus-GTAO-front.png',
+  'jb 700w': 'https://static.wikia.nocookie.net/gtawiki/images/5/5a/JB700W-GTAO-front.png',
+  'jb700w': 'https://static.wikia.nocookie.net/gtawiki/images/5/5a/JB700W-GTAO-front.png',
+  'neon': 'https://static.wikia.nocookie.net/gtawiki/images/a/a7/Neon-GTAO-front.png',
+  'sc1': 'https://static.wikia.nocookie.net/gtawiki/images/7/7d/SC1-GTAO-front.png',
+  'comet s2': 'https://static.wikia.nocookie.net/gtawiki/images/1/1b/CometS2-GTAO-front.png',
+  'sultan rs': 'https://static.wikia.nocookie.net/gtawiki/images/3/34/SultanRS-GTAO-front.png',
+  'revolter': 'https://static.wikia.nocookie.net/gtawiki/images/4/42/Revolter-GTAO-front.png',
+  'pariah': 'https://static.wikia.nocookie.net/gtawiki/images/e/e8/Pariah-GTAO-front.png',
+  'nero': 'https://static.wikia.nocookie.net/gtawiki/images/c/cf/Nero-GTAO-front.png',
+  'xa-21': 'https://static.wikia.nocookie.net/gtawiki/images/a/a6/XA21-GTAO-front.png',
+  'fmj': 'https://static.wikia.nocookie.net/gtawiki/images/c/c1/FMJ-GTAO-front.png',
+  'reaper': 'https://static.wikia.nocookie.net/gtawiki/images/f/f9/Reaper-GTAO-front.png',
+  'gt500': 'https://static.wikia.nocookie.net/gtawiki/images/1/13/GT500-GTAO-front.png',
+  's80': 'https://static.wikia.nocookie.net/gtawiki/images/b/bc/S80-GTAO-front.png',
+  'dewbauchee': 'https://static.wikia.nocookie.net/gtawiki/images/5/5a/JB700W-GTAO-front.png',
+};
+
 // Fallback data when scraping fails
 const FALLBACK_VEHICLES = [
   {
@@ -13,7 +34,7 @@ const FALLBACK_VEHICLES = [
     name: 'Benefactor Schlagen GT',
     manufacturer: 'Benefactor',
     type: 'Sports Car',
-    image: 'https://cdn.gtabase.com/images/vehicles/benefactor-schlagen-gt.png',
+    image: VEHICLE_IMAGES['schlagen gt'],
     originalPrice: 1325000,
     currency: 'GTA$',
     dealer: 'Legendary Motorsport',
@@ -30,7 +51,7 @@ const FALLBACK_VEHICLES = [
     name: 'Pegassi Ignus',
     manufacturer: 'Pegassi',
     type: 'Super Car',
-    image: 'https://cdn.gtabase.com/images/vehicles/pegassi-ignus.png',
+    image: VEHICLE_IMAGES['ignus'],
     originalPrice: 2650000,
     currency: 'GTA$',
     dealer: 'Legendary Motorsport',
@@ -47,7 +68,7 @@ const FALLBACK_VEHICLES = [
     name: 'Dewbauchee JB 700W',
     manufacturer: 'Dewbauchee',
     type: 'Sports Classic',
-    image: 'https://cdn.gtabase.com/images/vehicles/dewbauchee-jb-700w.png',
+    image: VEHICLE_IMAGES['jb700w'],
     originalPrice: 1690000,
     currency: 'GTA$',
     dealer: 'Legendary Motorsport',
@@ -72,7 +93,7 @@ const VEHICLE_DATABASE: Record<string, any> = {
     name: 'Pfister Neon',
     manufacturer: 'Pfister',
     type: 'Sports Car',
-    image: 'https://cdn.gtabase.com/images/vehicles/pfister-neon.png',
+    image: VEHICLE_IMAGES['neon'],
     originalPrice: 1500000,
     currency: 'GTA$',
     dealer: 'Legendary Motorsport',
@@ -89,7 +110,7 @@ const VEHICLE_DATABASE: Record<string, any> = {
     name: 'Übermacht SC1',
     manufacturer: 'Übermacht',
     type: 'Super Car',
-    image: 'https://cdn.gtabase.com/images/vehicles/ubermacht-sc1.png',
+    image: VEHICLE_IMAGES['sc1'],
     originalPrice: 1603000,
     currency: 'GTA$',
     dealer: 'Legendary Motorsport',
@@ -106,7 +127,7 @@ const VEHICLE_DATABASE: Record<string, any> = {
     name: 'Pfister Comet S2',
     manufacturer: 'Pfister',
     type: 'Sports Car',
-    image: 'https://cdn.gtabase.com/images/vehicles/pfister-comet-s2.png',
+    image: VEHICLE_IMAGES['comet s2'],
     originalPrice: 1785000,
     currency: 'GTA$',
     dealer: 'Legendary Motorsport',
@@ -123,7 +144,7 @@ const VEHICLE_DATABASE: Record<string, any> = {
     name: 'Karin Sultan RS',
     manufacturer: 'Karin',
     type: 'Sports Car',
-    image: 'https://cdn.gtabase.com/images/vehicles/karin-sultan-rs.png',
+    image: VEHICLE_IMAGES['sultan rs'],
     originalPrice: 795000,
     currency: 'GTA$',
     dealer: 'Southern SA Super Autos',
@@ -134,6 +155,74 @@ const VEHICLE_DATABASE: Record<string, any> = {
       traction: { label: 'Traction', value: 79, maxValue: 100, unit: '' },
     },
     description: 'Le Sultan RS de Karin est une berline sportive inspirée de la Subaru Impreza WRX STI, parfaite pour les courses de rue.',
+  },
+  'pariah': {
+    id: 'pariah',
+    name: 'Ocelot Pariah',
+    manufacturer: 'Ocelot',
+    type: 'Sports Car',
+    image: VEHICLE_IMAGES['pariah'],
+    originalPrice: 1420000,
+    currency: 'GTA$',
+    dealer: 'Legendary Motorsport',
+    stats: {
+      topSpeed: { label: 'Vitesse de pointe', value: 95, maxValue: 100, unit: 'mph' },
+      acceleration: { label: 'Accélération', value: 79, maxValue: 100, unit: 's' },
+      braking: { label: 'Freinage', value: 68, maxValue: 100, unit: '' },
+      traction: { label: 'Traction', value: 77, maxValue: 100, unit: '' },
+    },
+    description: 'Le Pariah d\'Ocelot est l\'une des voitures les plus rapides de GTA Online, inspirée de l\'Aston Martin Zagato.',
+  },
+  'revolter': {
+    id: 'revolter',
+    name: 'Übermacht Revolter',
+    manufacturer: 'Übermacht',
+    type: 'Sports Car',
+    image: VEHICLE_IMAGES['revolter'],
+    originalPrice: 1625000,
+    currency: 'GTA$',
+    dealer: 'Legendary Motorsport',
+    stats: {
+      topSpeed: { label: 'Vitesse de pointe', value: 87, maxValue: 100, unit: 'mph' },
+      acceleration: { label: 'Accélération', value: 81, maxValue: 100, unit: 's' },
+      braking: { label: 'Freinage', value: 71, maxValue: 100, unit: '' },
+      traction: { label: 'Traction', value: 78, maxValue: 100, unit: '' },
+    },
+    description: 'Le Revolter d\'Übermacht est une berline sportive inspirée de la BMW 7 Series, combinant luxe et performance.',
+  },
+  'nero': {
+    id: 'nero',
+    name: 'Progen Nero',
+    manufacturer: 'Progen',
+    type: 'Super Car',
+    image: VEHICLE_IMAGES['nero'],
+    originalPrice: 1995000,
+    currency: 'GTA$',
+    dealer: 'Legendary Motorsport',
+    stats: {
+      topSpeed: { label: 'Vitesse de pointe', value: 93, maxValue: 100, unit: 'mph' },
+      acceleration: { label: 'Accélération', value: 89, maxValue: 100, unit: 's' },
+      braking: { label: 'Freinage', value: 76, maxValue: 100, unit: '' },
+      traction: { label: 'Traction', value: 88, maxValue: 100, unit: '' },
+    },
+    description: 'Le Nero de Progen est une hypercar inspirée de la McLaren P1, offrant des performances de niveau supérieur.',
+  },
+  'fmj': {
+    id: 'fmj',
+    name: 'Vapid FMJ',
+    manufacturer: 'Vapid',
+    type: 'Super Car',
+    image: VEHICLE_IMAGES['fmj'],
+    originalPrice: 2750000,
+    currency: 'GTA$',
+    dealer: 'Legendary Motorsport',
+    stats: {
+      topSpeed: { label: 'Vitesse de pointe', value: 91, maxValue: 100, unit: 'mph' },
+      acceleration: { label: 'Accélération', value: 86, maxValue: 100, unit: 's' },
+      braking: { label: 'Freinage', value: 74, maxValue: 100, unit: '' },
+      traction: { label: 'Traction', value: 85, maxValue: 100, unit: '' },
+    },
+    description: 'Le FMJ de Vapid est une supercar américaine inspirée de la Ford GT, alliant puissance et style.',
   },
 };
 
@@ -167,6 +256,20 @@ function shouldRefresh(): boolean {
   }
   
   return false;
+}
+
+// Get image URL for a vehicle name
+function getVehicleImage(vehicleName: string): string {
+  const nameLower = vehicleName.toLowerCase();
+  
+  for (const [key, url] of Object.entries(VEHICLE_IMAGES)) {
+    if (nameLower.includes(key) || key.includes(nameLower)) {
+      return url;
+    }
+  }
+  
+  // Default fallback image from GTA Wiki
+  return 'https://static.wikia.nocookie.net/gtawiki/images/1/1c/SchlagenGT-GTAO-front.png';
 }
 
 async function fetchFromWebSearch(zai: any): Promise<any> {
@@ -274,7 +377,7 @@ If you cannot determine the current podium vehicle, return {"found": false}`,
           name: parsed.name,
           manufacturer: parsed.manufacturer || 'Unknown',
           type: parsed.type || 'Sports Car',
-          image: 'https://cdn.gtabase.com/images/vehicles/placeholder.png',
+          image: getVehicleImage(parsed.name),
           originalPrice: 1000000,
           currency: 'GTA$',
           dealer: 'Legendary Motorsport',
