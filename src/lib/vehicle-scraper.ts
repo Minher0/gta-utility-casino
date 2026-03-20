@@ -1,16 +1,10 @@
 import ZAI from 'z-ai-web-dev-sdk';
 
-// Cache for 1 hour
-const CACHE_DURATION = 60 * 60 * 1000;
+// Short cache to avoid excessive API calls (30 minutes)
+const CACHE_DURATION = 30 * 60 * 1000;
 let cachedData: any = null;
 let lastFetchTime = 0;
-
-// Sources to try for podium vehicle data
-const SOURCES = [
-  'https://www.rockpapershotgun.com/this-weeks-gta-online-podium-car',
-  'https://www.eurogamer.net/gta-online-podium-vehicle-lucky-wheel-9302',
-  'https://www.turtlebeach.com/blog/gta-online-podium-car',
-];
+let lastFetchDate = ''; // Track the date of last fetch
 
 // Fallback data when scraping fails
 const FALLBACK_VEHICLES = [
@@ -107,6 +101,40 @@ const VEHICLE_DATABASE: Record<string, any> = {
     },
     description: 'Le SC1 d\'Übermacht est une supercar allemande inspirée de la BMW i8, avec un design futuriste et des performances de pointe.',
   },
+  'comet s2': {
+    id: 'comet-s2',
+    name: 'Pfister Comet S2',
+    manufacturer: 'Pfister',
+    type: 'Sports Car',
+    image: 'https://cdn.gtabase.com/images/vehicles/pfister-comet-s2.png',
+    originalPrice: 1785000,
+    currency: 'GTA$',
+    dealer: 'Legendary Motorsport',
+    stats: {
+      topSpeed: { label: 'Vitesse de pointe', value: 91, maxValue: 100, unit: 'mph' },
+      acceleration: { label: 'Accélération', value: 87, maxValue: 100, unit: 's' },
+      braking: { label: 'Freinage', value: 73, maxValue: 100, unit: '' },
+      traction: { label: 'Traction', value: 86, maxValue: 100, unit: '' },
+    },
+    description: 'Le Comet S2 de Pfister est une voiture de sport inspirée de la Porsche 911 GT3, offrant des performances de pointe.',
+  },
+  'sultan rs': {
+    id: 'sultan-rs',
+    name: 'Karin Sultan RS',
+    manufacturer: 'Karin',
+    type: 'Sports Car',
+    image: 'https://cdn.gtabase.com/images/vehicles/karin-sultan-rs.png',
+    originalPrice: 795000,
+    currency: 'GTA$',
+    dealer: 'Southern SA Super Autos',
+    stats: {
+      topSpeed: { label: 'Vitesse de pointe', value: 84, maxValue: 100, unit: 'mph' },
+      acceleration: { label: 'Accélération', value: 80, maxValue: 100, unit: 's' },
+      braking: { label: 'Freinage', value: 69, maxValue: 100, unit: '' },
+      traction: { label: 'Traction', value: 79, maxValue: 100, unit: '' },
+    },
+    description: 'Le Sultan RS de Karin est une berline sportive inspirée de la Subaru Impreza WRX STI, parfaite pour les courses de rue.',
+  },
 };
 
 function getWeeklyBonus(): any[] {
@@ -118,10 +146,37 @@ function getWeeklyBonus(): any[] {
   return bonuses;
 }
 
+// Get current date string (YYYY-MM-DD)
+function getCurrentDateString(): string {
+  return new Date().toISOString().split('T')[0];
+}
+
+// Check if we need to refresh (new day or cache expired)
+function shouldRefresh(): boolean {
+  const currentDate = getCurrentDateString();
+  
+  // Force refresh if it's a new day
+  if (lastFetchDate !== currentDate) {
+    return true;
+  }
+  
+  // Or if cache expired
+  const now = Date.now();
+  if (now - lastFetchTime >= CACHE_DURATION) {
+    return true;
+  }
+  
+  return false;
+}
+
 async function fetchFromWebSearch(zai: any): Promise<any> {
   try {
+    // Get current month/year for more accurate search
+    const now = new Date();
+    const monthYear = now.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+    
     const searchResults = await zai.functions.invoke('web_search', {
-      query: 'GTA Online casino podium vehicle this week current 2026',
+      query: `GTA Online casino podium vehicle this week ${monthYear}`,
       num: 5,
     });
 
@@ -156,10 +211,14 @@ async function fetchFromWebSearch(zai: any): Promise<any> {
 
 async function fetchWithLLMExtraction(zai: any): Promise<any> {
   try {
+    // Get current date for accurate search
+    const now = new Date();
+    const monthYear = now.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+    
     // Search for current podium vehicle
     const searchResults = await zai.functions.invoke('web_search', {
-      query: 'GTA Online podium car this week March 2026',
-      num: 3,
+      query: `GTA Online podium car this week ${monthYear} current`,
+      num: 5,
     });
 
     if (!searchResults || searchResults.length === 0) {
@@ -177,7 +236,7 @@ async function fetchWithLLMExtraction(zai: any): Promise<any> {
         {
           role: 'system',
           content: `You are a GTA Online expert. Extract the current podium vehicle from the search results.
-Return ONLY a JSON object with this exact structure, no markdown:
+Return ONLY a JSON object with this exact structure, no markdown, no code blocks:
 {
   "name": "Full vehicle name (e.g., Pegassi Ignus)",
   "manufacturer": "Manufacturer name (e.g., Pegassi)",
@@ -188,7 +247,7 @@ If you cannot determine the current podium vehicle, return {"found": false}`,
         },
         {
           role: 'user',
-          content: `Search results:\n${contextText}\n\nWhat is the current GTA Online podium vehicle?`,
+          content: `Search results:\n${contextText}\n\nWhat is the current GTA Online podium vehicle? Return ONLY the JSON, no other text.`,
         },
       ],
       temperature: 0.1,
@@ -196,13 +255,16 @@ If you cannot determine the current podium vehicle, return {"found": false}`,
 
     const responseText = completion.choices[0]?.message?.content || '';
     
+    // Clean response from potential markdown code blocks
+    const cleanResponse = responseText.replace(/```json\n?|\n?```/g, '').trim();
+    
     try {
-      const parsed = JSON.parse(responseText);
+      const parsed = JSON.parse(cleanResponse);
       if (parsed.found && parsed.name) {
         // Find matching vehicle in database
         const nameLower = parsed.name.toLowerCase();
         for (const [key, vehicle] of Object.entries(VEHICLE_DATABASE)) {
-          if (nameLower.includes(key) || vehicle.name.toLowerCase().includes(nameLower)) {
+          if (nameLower.includes(key) || vehicle.name.toLowerCase().includes(nameLower) || key.includes(nameLower)) {
             return vehicle;
           }
         }
@@ -226,7 +288,7 @@ If you cannot determine the current podium vehicle, return {"found": false}`,
         };
       }
     } catch (e) {
-      console.error('Failed to parse LLM response:', e);
+      console.error('Failed to parse LLM response:', e, 'Response:', responseText);
     }
 
     return null;
@@ -238,9 +300,13 @@ If you cannot determine the current podium vehicle, return {"found": false}`,
 
 export async function getPodiumVehicle() {
   const now = Date.now();
+  const currentDate = getCurrentDateString();
 
+  // Check if we need to refresh data
+  const needsRefresh = shouldRefresh();
+  
   // Return cached data if still valid
-  if (cachedData && now - lastFetchTime < CACHE_DURATION) {
+  if (!needsRefresh && cachedData) {
     return cachedData;
   }
 
@@ -283,11 +349,13 @@ export async function getPodiumVehicle() {
         podiumRefreshDay: 'Jeudi',
       },
       lastUpdated: new Date().toISOString(),
+      cached: false,
     };
 
     // Update cache
     cachedData = result;
     lastFetchTime = now;
+    lastFetchDate = currentDate;
 
     return result;
   } catch (error) {
@@ -295,7 +363,7 @@ export async function getPodiumVehicle() {
     
     // Return cached data if available, otherwise fallback
     if (cachedData) {
-      return cachedData;
+      return { ...cachedData, cached: true };
     }
 
     // Return a default fallback
@@ -319,6 +387,7 @@ export async function getPodiumVehicle() {
         podiumRefreshDay: 'Jeudi',
       },
       lastUpdated: new Date().toISOString(),
+      cached: false,
     };
   }
 }

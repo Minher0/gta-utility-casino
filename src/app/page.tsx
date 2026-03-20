@@ -24,7 +24,13 @@ export default function Home() {
   useEffect(() => {
     async function fetchVehicleData() {
       try {
-        const response = await fetch('/api/vehicle');
+        // Force no cache to always get fresh data
+        const response = await fetch('/api/vehicle', {
+          cache: 'no-store',
+          headers: {
+            'Cache-Control': 'no-cache',
+          },
+        });
         if (!response.ok) {
           throw new Error('Failed to fetch vehicle data');
         }
