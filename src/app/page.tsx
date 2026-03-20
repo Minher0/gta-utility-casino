@@ -234,6 +234,23 @@ export default function Home() {
       {/* Footer */}
       <CasinoFooter />
 
+      {/* Buy me a cookie button */}
+      <a
+        href="https://buymeacoffee.com/minhero"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="fixed bottom-4 left-4 z-40 inline-flex items-center gap-2 px-3 py-2 rounded-full bg-amber-500/90 hover:bg-amber-500 text-white text-sm font-medium transition-all shadow-lg hover:shadow-xl backdrop-blur-sm hover:scale-105"
+        aria-label="Offrir un café"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4">
+          <path d="M10 2v2" />
+          <path d="M14 2v2" />
+          <path d="M16 8a1 1 0 0 1 1 1v8a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4V9a1 1 0 0 1 1-1h14a4 4 1 1 1 0 8h-1" />
+          <path d="M6 2v2" />
+        </svg>
+        <span className="hidden sm:inline">Offrir un café</span>
+      </a>
+
       {/* Decorative bottom gradient */}
       <div className="fixed bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-amber-500/50 to-transparent" />
     </main>
