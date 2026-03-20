@@ -17,77 +17,6 @@ import CasinoHeader from '@/components/casino/CasinoHeader';
 import CasinoFooter from '@/components/casino/CasinoFooter';
 import type { VehicleConfig, WeeklyBonus as WeeklyBonusType } from '@/types/vehicle';
 
-// Extended bonus type with additional fields
-interface ExtendedBonus extends WeeklyBonusType {
-  reward?: string;
-  isNew?: boolean;
-  isHot?: boolean;
-}
-
-// Get all weekly bonuses with detailed information
-function getAllWeeklyBonuses(): ExtendedBonus[] {
-  return [
-    { 
-      id: 1, 
-      title: 'Double GTA$ & RP', 
-      description: 'Courses de rue à travers Los Santos', 
-      icon: 'race',
-      reward: '2x GTA$ et RP sur toutes les courses de rue',
-      isHot: true
-    },
-    { 
-      id: 2, 
-      title: 'Triple Récompenses Casino', 
-      description: 'Missions et défis du Diamond Casino', 
-      icon: 'casino',
-      reward: '3x GTA$ sur les missions casino',
-      isNew: true
-    },
-    { 
-      id: 3, 
-      title: '30% de réduction', 
-      description: 'Sur tous les véhicules Legendary Motorsport', 
-      icon: 'discount',
-      reward: 'Économisez jusqu\'à 500 000 GTA$'
-    },
-    { 
-      id: 4, 
-      title: 'Double Récompenses Adversary Modes', 
-      description: 'Modes de jeu compétitifs', 
-      icon: 'race',
-      reward: '2x GTA$ et RP'
-    },
-    { 
-      id: 5, 
-      title: 'Prime de connexion', 
-      description: 'Connectez-vous chaque jour pour recevoir des récompenses', 
-      icon: 'gift',
-      reward: 'Jusqu\'à 200 000 GTA$ par jour'
-    },
-    { 
-      id: 6, 
-      title: 'Tour Gratuit Lucky Wheel', 
-      description: 'Un tour gratuit chaque jour à la roue de la fortune', 
-      icon: 'casino',
-      reward: 'Véhicule, GTA$, ou prix mystère'
-    },
-    { 
-      id: 7, 
-      title: 'Discount Property', 
-      description: 'Réductions sur les propriétés et bunkers', 
-      icon: 'discount',
-      reward: 'Jusqu\'à 40% de réduction'
-    },
-    { 
-      id: 8, 
-      title: 'Double Récompenses Business Battles', 
-      description: 'Missions de cargo et ventes spéciales', 
-      icon: 'race',
-      reward: '2x GTA$ et RP'
-    },
-  ];
-}
-
 // Get icon component by name
 function getBonusIcon(iconName: string): JSX.Element {
   const icons: Record<string, JSX.Element> = {
@@ -329,7 +258,7 @@ export default function Home() {
 
                       {/* All Bonuses Grid */}
                       <div className="grid gap-4">
-                        {getAllWeeklyBonuses().map((bonus, index) => (
+                        {config.weeklyBonuses.map((bonus, index) => (
                           <div 
                             key={bonus.id}
                             className="group relative overflow-hidden bg-gradient-to-r from-zinc-900/80 to-black border border-amber-500/20 hover:border-amber-500/50 rounded-xl p-5 transition-all duration-300"

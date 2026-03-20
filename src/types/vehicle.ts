@@ -32,6 +32,9 @@ export interface WeeklyBonus {
   title: string;
   description: string;
   icon: string;
+  reward?: string;
+  isNew?: boolean;
+  isHot?: boolean;
 }
 
 export interface CasinoInfo {

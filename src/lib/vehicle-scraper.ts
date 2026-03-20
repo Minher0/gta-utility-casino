@@ -123,6 +123,105 @@ function getWeeklyBonus(): any[] {
   return bonuses;
 }
 
+// Fetch weekly bonuses dynamically via web search + LLM
+async function fetchWeeklyBonuses(zai: any): Promise<any[] | null> {
+  try {
+    const now = new Date();
+    const monthYear = now.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+    
+    // Search for current GTA Online weekly bonuses
+    const searchResults = await zai.functions.invoke('web_search', {
+      query: `GTA Online weekly bonuses this week ${monthYear} double triple rewards`,
+      num: 5,
+    });
+
+    if (!searchResults || searchResults.length === 0) {
+      return null;
+    }
+
+    // Combine snippets for LLM analysis
+    const contextText = searchResults
+      .map((r: any) => `${r.name}\n${r.snippet}`)
+      .join('\n\n');
+
+    // Use LLM to extract bonus information
+    const completion = await zai.chat.completions.create({
+      messages: [
+        {
+          role: 'system',
+          content: `You are a GTA Online expert. Extract the current weekly bonuses from the search results.
+Return ONLY a JSON array with this exact structure, no markdown, no code blocks:
+[
+  {
+    "title": "Bonus title",
+    "description": "Brief description",
+    "icon": "race|discount|casino|gift",
+    "reward": "Specific reward amount or details",
+    "isNew": true/false,
+    "isHot": true/false
+  }
+]
+
+Icon types:
+- race: for races, adversary modes, missions with RP/GTA$ multipliers
+- discount: for discounts on vehicles, properties, upgrades
+- casino: for casino-related bonuses, lucky wheel, chips
+- gift: for login bonuses, free items, giveaways
+
+If you find bonuses, return them. If no specific bonuses found, return an empty array []`,
+        },
+        {
+          role: 'user',
+          content: `Search results:\n${contextText}\n\nWhat are the current GTA Online weekly bonuses? Return ONLY the JSON array, no other text.`,
+        },
+      ],
+      temperature: 0.1,
+    });
+
+    const responseText = completion.choices[0]?.message?.content || '';
+    
+    // Clean response from potential markdown code blocks
+    const cleanResponse = responseText.replace(/```json\n?|\n?```/g, '').trim();
+    
+    try {
+      const parsed = JSON.parse(cleanResponse);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        // Add IDs to each bonus
+        return parsed.map((bonus: any, index: number) => ({
+          id: index + 1,
+          title: bonus.title || 'Bonus',
+          description: bonus.description || '',
+          icon: bonus.icon || 'casino',
+          reward: bonus.reward,
+          isNew: bonus.isNew || false,
+          isHot: bonus.isHot || false,
+        }));
+      }
+    } catch (e) {
+      console.error('Failed to parse LLM bonus response:', e, 'Response:', responseText);
+    }
+
+    return null;
+  } catch (error) {
+    console.error('Bonus fetch failed:', error);
+    return null;
+  }
+}
+
+// Fallback bonuses when scraping fails
+function getFallbackBonuses(): any[] {
+  return [
+    { id: 1, title: 'Double GTA$ & RP', description: 'Courses de rue à travers Los Santos', icon: 'race', reward: '2x GTA$ et RP', isHot: true },
+    { id: 2, title: 'Triple Récompenses Casino', description: 'Missions et défis du Diamond Casino', icon: 'casino', reward: '3x GTA$ sur les missions casino', isNew: true },
+    { id: 3, title: '30% de réduction', description: 'Sur les véhicules Legendary Motorsport', icon: 'discount', reward: 'Économisez jusqu\'à 500 000 GTA$' },
+    { id: 4, title: 'Prime de connexion', description: 'Connectez-vous chaque jour pour recevoir des récompenses', icon: 'gift', reward: 'Jusqu\'à 200 000 GTA$ par jour' },
+    { id: 5, title: 'Tour Gratuit Lucky Wheel', description: 'Un tour gratuit chaque jour à la roue de la fortune', icon: 'casino', reward: 'Véhicule, GTA$, ou prix mystère' },
+    { id: 6, title: 'Double Récompenses Adversary Modes', description: 'Modes de jeu compétitifs', icon: 'race', reward: '2x GTA$ et RP' },
+    { id: 7, title: 'Discount Property', description: 'Réductions sur les propriétés et bunkers', icon: 'discount', reward: 'Jusqu\'à 40% de réduction' },
+    { id: 8, title: 'Double Récompenses Business Battles', description: 'Missions de cargo et ventes spéciales', icon: 'race', reward: '2x GTA$ et RP' },
+  ];
+}
+
 // Get current date string (YYYY-MM-DD)
 function getCurrentDateString(): string {
   return new Date().toISOString().split('T')[0];
@@ -319,6 +418,12 @@ export async function getPodiumVehicle() {
       vehicleData = FALLBACK_VEHICLES[index];
     }
 
+    // Fetch weekly bonuses dynamically
+    let bonuses = await fetchWeeklyBonuses(zai);
+    if (!bonuses || bonuses.length === 0) {
+      bonuses = getFallbackBonuses();
+    }
+
     // Get current date info
     const today = new Date();
     const weekStart = new Date(today);
@@ -332,7 +437,7 @@ export async function getPodiumVehicle() {
         weekStart: weekStart.toISOString().split('T')[0],
         weekEnd: weekEnd.toISOString().split('T')[0],
       },
-      weeklyBonuses: getWeeklyBonus(),
+      weeklyBonuses: bonuses,
       casinoInfo: {
         name: 'Diamond Casino & Resort',
         location: 'East Vinewood, Los Santos',
@@ -370,7 +475,7 @@ export async function getPodiumVehicle() {
         weekStart: weekStart.toISOString().split('T')[0],
         weekEnd: weekEnd.toISOString().split('T')[0],
       },
-      weeklyBonuses: getWeeklyBonus(),
+      weeklyBonuses: getFallbackBonuses(),
       casinoInfo: {
         name: 'Diamond Casino & Resort',
         location: 'East Vinewood, Los Santos',
